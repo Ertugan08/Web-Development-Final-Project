@@ -40,3 +40,7 @@ class EventSerializer(serializers.ModelSerializer):
         model = Events
         fields = '__all__'
         # read_only_fields = ('desc', 'info', 'photo', 'category', 'company')
+class CreateUserSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = ('username', 'password')

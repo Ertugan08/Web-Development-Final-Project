@@ -7,8 +7,15 @@ from rest_framework import generics
 
 from api.serializers import *
 from api.models import *
+from rest_framework.viewsets import ViewSet
+class UserViewSet(ViewSet):
 
+    def create_user(self, request, *args, **kwargs):
+        serializer = CreateUserSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
 
+        user = User.objects.create_user(**serializer.validated_data)
+        return Response(serializer.validated_data, status=status.HTTP_201_CREATED)
 class LoginAPIView(APIView):
     permission_classes = [AllowAny]
     serializer_class = LoginSerializer
