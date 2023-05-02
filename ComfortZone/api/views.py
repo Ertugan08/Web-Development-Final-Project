@@ -9,13 +9,13 @@ from api.serializers import *
 from api.models import *
 from rest_framework.viewsets import ViewSet
 class UserViewSet(ViewSet):
-
     def create_user(self, request, *args, **kwargs):
         serializer = CreateUserSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
 
         user = User.objects.create_user(**serializer.validated_data)
         return Response(serializer.validated_data, status=status.HTTP_201_CREATED)
+
 class LoginAPIView(APIView):
     permission_classes = [AllowAny]
     serializer_class = LoginSerializer
@@ -28,23 +28,58 @@ class LoginAPIView(APIView):
         return Response(serializer.data, status=status.HTTP_200_OK)
 
 
-class EventAPIListView(generics.ListCreateAPIView):
-    permission_classes = [AllowAny]
-    queryset = Events.objects.all()
-    serializer_class = EventSerializer
 
 
-class EventRetrieveUpdateDestroyAPIView(generics.RetrieveUpdateDestroyAPIView):
-    permission_classes = [AllowAny]
-    queryset = Events.objects.all()
-    serializer_class = EventSerializer
+
+class EventAPIListView(APIView):
+    permission_classes = (AllowAny,)
+    def post(self, request, *args, **kwargs):
+        serializer = EventSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
-class CategoryAPIListView(generics.ListAPIView):
-    permission_classes = [AllowAny]
-    queryset = Category.objects.all()
-    serializer_class = CategorySerializer
+class EventRetrieveUpdateDestroyAPIView(APIView):
+    permission_classes = (AllowAny,)
+    def get_object(self, pk):
+        try:
+            return Events.objects.get(id=pk)
+        except Events.DoesNotExist as e:
+            return Response(str(e), status=status.HTTP_400_BAD_REQUEST)
 
+    def get(self, request, pk):
+        self.permission_classes = (AllowAny,)
+        instance = self.get_object(pk)
+        serializer = EventSerializer(instance)
+        return Response(serializer.data)
+
+    def put(self, request, pk, *args, **kwargs):
+        self.permission_classes = (IsAuthenticated,)
+        instance = self.get_object(pk)
+        serializer = EventSerializer(instance=instance, data=request.data, partial=True)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    def delete(self,request,pk):
+        self.permission_classes = (IsAuthenticated,)
+        instance = self.get_object(pk)
+        serializer = EventSerializer(instance=instance, data=request.data, partial=True)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+
+class CategoryAPIListView(APIView):
+    permission_classes = (AllowAny,)
+    def get(self,request):
+        queryset = Category.objects.all()
+        serializer = CategorySerializer(queryset,many=True)
+        return Response(serializer.data)
 
 class CategoryItemsAPIView(APIView):
     permission_classes = (AllowAny,)
@@ -54,15 +89,10 @@ class CategoryItemsAPIView(APIView):
         serializer = EventSerializer(instance=events, many=True)
         return Response(serializer.data)
 
-
 class FavoritesAPIView(APIView):
-    permission_classes = (AllowAny,)
-
+    permission_classes = (IsAuthenticated,)
     def get(self, request):
-        liked_events = Events.objects.filter(user=request.user.id, liked_events__user_liked=True)
-        print(request.user)
-        serializer = EventSerializer(instance=liked_events, many=True)
-        return Response(serializer.data)
+        liked_events = LikeUser.objects.filter(user=request.data.user)
 
 
 @api_view(['POST'])

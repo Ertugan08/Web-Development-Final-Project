@@ -8,8 +8,6 @@ from django.contrib.auth.models import PermissionsMixin
 from django.contrib.auth.models import BaseUserManager
 from django.db.models import CharField, FloatField, TextField, IntegerField, DateField, ManyToManyField, BooleanField
 from django.db.models.fields.related import ForeignKey
-
-
 class UserManager(BaseUserManager):
 
     def _create_user(self, username, password=None, **extra_fields):
@@ -85,27 +83,18 @@ class Category(models.Model):
         return self.name
 
 
-class Company(models.Model):
-    name = CharField(max_length=255)
-
-    def __str__(self):
-        return self.name
-
-
 class Events(models.Model):
     title = CharField(max_length=255)
     desc = TextField()
     info = TextField()
     photo = CharField(max_length=800)
-    like = IntegerField(default=0)
+    like = models.ForeignKey()
     date = DateField(auto_now=True)
     category = ForeignKey(Category, on_delete=models.CASCADE)
-    company = ForeignKey(Company, on_delete=models.CASCADE)
     user = ForeignKey(User, on_delete=models.CASCADE, related_name='events', default=1)
 
     def __str__(self):
         return self.title
-
 
 class LikeUser(models.Model):
     user = ForeignKey(User, on_delete=models.CASCADE)
@@ -114,3 +103,5 @@ class LikeUser(models.Model):
 
     def __str__(self):
         return f"{self.user} liked {self.event}"
+
+

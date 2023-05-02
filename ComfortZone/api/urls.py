@@ -8,5 +8,7 @@ urlpatterns = [
     path('home/<int:pk>/', EventRetrieveUpdateDestroyAPIView.as_view()),
     path('category/<int:pk>/', CategoryItemsAPIView.as_view()),
     path('favorites/', FavoritesAPIView.as_view()),
-    path('like/<int:pk>/', like)
+    path('like/<int:pk>/', like),
+    path('create/', EventAPIListView.as_view()),
+    path('check/',FavoritesAPIView.as_view())
 ]
